@@ -1,6 +1,37 @@
 {
   "name": "dude-most-read-posts",
-  "version": "0.1.0",
-  "description": "",
-  "author": "Digitoimisto Dude Oy (moro@dude.fi)"
+  "type": "project",
+  "license": "MIT",
+  "description": "A developer-friendly plugin to count most read posts",
+  "homepage": "https://github.com/digitoimistodude/dude-most-read-posts",
+  "authors": [
+    {
+      "name": "Timi Wahalahti",
+      "email": "timi@dude.fi",
+      "homepage": "https://github.com/timiwahalahti"
+    }
+  ],
+   "config": {
+    "preferred-install": "dist",
+    "generate-salts": true,
+    "secure-http": true
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://wpackagist.org",
+      "minimum-stability": "dev"
+    }
+  ],
+  "require": {
+    "webdevstudios/cmb2": "dev-master"
+  },
+  "autoload": {
+    "files": ["vendor/webdevstudios/cmb2/init.php"]
+  },
+  "extra": {
+    "installer-paths": {
+      "vendor/{$name}/": ["webdevstudios/cmb2"]
+    }
+  }
 }
