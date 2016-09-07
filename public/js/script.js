@@ -1,10 +1,10 @@
 jQuery(document).ready(function($) {
 	var d = new Date();
 	var time_current = d.getTime();
-	var time_saved = sessionStorage.getItem('dmrpreadcookie')
+	var time_saved = sessionStorage.getItem('dmrpreadcookie_'+dmrp.id)
 
 	if( (time_current - time_saved ) > dmrp.cookie_timeout ) {
-		sessionStorage.setItem('dmrpreadcookie', time_current);
+		sessionStorage.setItem('dmrpreadcookie_'+dmrp.id, time_current);
 		dmrp_count();
 	}
 });
