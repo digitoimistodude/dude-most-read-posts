@@ -1,0 +1,17 @@
+{
+  "name": "digitoimistodude/dude-most-read-posts",
+  "type": "wordpress-plugin",
+  "license": "MIT",
+  "description": "A developer-friendly plugin to count most read posts",
+  "homepage": "https://github.com/digitoimistodude/dude-most-read-posts",
+  "keywords": ["wordpress", "plugin", "woocommerce"],
+  "license": "MIT",
+  "version": "1.0.0",  
+  "authors": [
+    {
+      "name": "Timi Wahalahti",
+      "email": "timi@dude.fi",
+      "homepage": "https://github.com/timiwahalahti"
+    }
+  ]
+}
