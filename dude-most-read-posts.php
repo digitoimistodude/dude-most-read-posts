@@ -4,7 +4,7 @@
  * Plugin Name: Most read posts
  * Plugin URL: https://www.dude.fi
  * Description: A developer-friendly plugin to count most read posts
- * Version: 0.1.0
+ * Version: 0.1.1
  * Author: Digitoimisto Dude Oy, Timi Wahalahti
  * Author URL: https://www.dude.fi
  * Requires at least: 4.6
