@@ -4,7 +4,7 @@ _A developer-friendly plugin to count post reads and list most read content_
 
 Plugin adds small _(332 bytes)_ javascript file, which calls the counter, to every singular post and introduces two new [functions](#functions) to get most read posts. Once plugin is activated, it starts to count the times post has been read.
 
-Only all time most read posts will be counted by default and reads made by logged-in user or more than once per hour by same user in same post will be ignored. These defaults can be changed using [filters][#filters].
+Only all time most read posts will be counted by default and reads made by logged-in user or more than once per hour by same user in same post will be ignored. These defaults can be changed using [filters](#filters).
 
 Handcrafted with love at [Digitoimisto Dude Oy](https://www.dude.fi), a Finnish boutique digital agency in the center of Jyväskylä.
 
@@ -28,7 +28,7 @@ Most read posts is released under the GNU GPL 2 or later.
 
 ### Usage
 
-This plugin does not have settings page or provide anything visible on front-end. Settings can be changed with [filters][#filters] listed below.
+This plugin does not have settings page or provide anything visible on front-end. Settings can be changed with [filters](#filters) listed below.
 
 **Plugin introduces two new [functions](#functions) to get most read posts.**
 
@@ -42,7 +42,7 @@ Both functions accepts three parameters.
 
 `$period` _(string) (optional)_ Which period of most read posts to receive. Possible values are year, month and week. Default value is null, which equals to all-time.
 
-`$args` _(array) (optional)_ If period is set, this parameter is used to set what year and month or week to use. Set array with period as key and wanted time as value. Default value is empty array, which equals to current year, month and week. For example, following array would return most read posts for 2015-09; array( 'year' => '2015', 'month' => '09' )`
+`$args` _(array) (optional)_ If period is set, this parameter is used to set what year and month or week to use. Set array with period as key and wanted time as value. Default value is empty array, which equals to current year, month and week. For example, following array would return most read posts for 2015-09; `array( 'year' => '2015', 'month' => '09' )`.
 
 `$query_args` _(array) (optional)_ Is merged to arguments set by plugin and forwarded to WP_Query. With this you can set post type or result count with `post_per_page` for example. Default value is empty array.
 
