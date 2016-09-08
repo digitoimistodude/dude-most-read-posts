@@ -3,8 +3,8 @@
 /**
  * Plugin Name: Most read posts
  * Plugin URL: https://www.dude.fi
- * Description: A developer-friendly plugin to count most read posts
- * Version: 0.1.1
+ * Description: A developer-friendly plugin to count post reads and list most read content
+ * Version: 1.0.0
  * Author: Digitoimisto Dude Oy, Timi Wahalahti
  * Author URL: https://www.dude.fi
  * Requires at least: 4.6
@@ -28,7 +28,7 @@ class Dude_Most_Read_Posts {
 
 	public function __construct() {
 		$this->plugin_name = 'dude-most-read-posts';
-		$this->version = '0.1.0';
+		$this->version = '1.0.0';
 
 		$this->run();
 	} // end __construct
@@ -80,7 +80,7 @@ class Dude_Most_Read_Posts {
 		 * Do not count hits to these post types, by default count for all. This
 		 * behavior can be cahnged with filter
 		 */
-		if( !is_singular( apply_filters( 'dmrp_count_for_post_types', '' ) ) )
+		if( !is_singular( apply_filters( 'dmrp_count_for_post_types', array( 'post' ) ) ) )
 			return;
 
 		/**
@@ -198,6 +198,7 @@ class Dude_Most_Read_Posts {
 		}
 
 		$args = wp_parse_args( $query_args, array(
+			'post_type'								=> 'post',
 			'posts_per_page'					=> 5,
 			'post_status'							=> 'publish',
 			'no_found_rows'						=> true,
