@@ -77,6 +77,15 @@ class Dude_Most_Read_Posts {
 			return;
 
 		/**
+		 * Do not count hits made by users with a certain capability. This
+		 * behavior can be changed with filter returning a capability.
+		 *
+		 * @see https://codex.wordpress.org/Roles_and_Capabilities#Capability_vs._Role_Table
+		 */
+		if ( current_user_can( apply_filters( 'dmrp_dont_count_for_capability', '__return_empty_string' ) ) )
+			return;
+
+		/**
 		 * Do not count hits to these post types, by default count for all. This
 		 * behavior can be cahnged with filter
 		 */
