@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Most read posts
  * Plugin URI: https://github.com/digitoimistodude/dude-most-read-posts
- * Description: A developer-friendly plugin to count post reads and list most read content
+ * Description: A developer-friendly plugin to count post reads and list most read content.
  * Version: 1.0.0
  * Author: Digitoimisto Dude Oy, Timi Wahalahti
  * Author URI: https://www.dude.fi
