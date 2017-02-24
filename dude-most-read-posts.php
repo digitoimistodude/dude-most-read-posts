@@ -7,7 +7,7 @@
  * Author: Digitoimisto Dude Oy, Timi Wahalahti
  * Author URI: https://www.dude.fi
  * Requires at least: 4.6
- * Tested up to: 4.6
+ * Tested up to: 4.7.2
  *
  * Text Domain: dude-most-read-posts
  * Domain Path: /languages
