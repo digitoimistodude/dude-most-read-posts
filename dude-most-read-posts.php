@@ -1,12 +1,11 @@
 <?php
-
 /**
  * Plugin Name: Most read posts
- * Plugin URL: https://www.dude.fi
+ * Plugin URI: https://github.com/digitoimistodude/dude-most-read-posts
  * Description: A developer-friendly plugin to count post reads and list most read content
  * Version: 1.0.0
  * Author: Digitoimisto Dude Oy, Timi Wahalahti
- * Author URL: https://www.dude.fi
+ * Author URI: https://www.dude.fi
  * Requires at least: 4.6
  * Tested up to: 4.6
  *
