@@ -206,10 +206,11 @@ class Dude_Most_Read_Posts {
 		}
 
 		$args = wp_parse_args( $query_args, array(
-			'post_type'								=> 'post',
-			'posts_per_page'					=> 5,
-			'post_status'							=> 'publish',
-			'no_found_rows'						=> true,
+			'post_type'			=> 'post',
+			'posts_per_page'		=> 5,
+			'post_status'			=> 'publish',
+			'ignore_sticky_posts'		=> true,
+			'no_found_rows'			=> true,
 			'update_post_term_cache'	=> false,
 		) );
 
