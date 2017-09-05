@@ -24,10 +24,12 @@ class Dude_Most_Read_Posts {
 	private $instance = null;
 	protected $plugin_name;
 	protected $version;
+	protected $db_version;
 
 	public function __construct() {
 		$this->plugin_name = 'dude-most-read-posts';
 		$this->version = '1.0.0';
+		$this->db_version = 1;
 
 		$this->run();
 	} // end __construct
@@ -49,11 +51,44 @@ class Dude_Most_Read_Posts {
 	 * @version 0.1.0
 	 */
 	private function set_hooks() {
+		register_activation_hook( __FILE__, array( $this, 'install_database' ) );
+
 		load_plugin_textdomain( 'dude-most-read-posts', false, dirname( dirname( plugin_basename( __FILE__ ) ) ).'/languages/' );
+		add_action( 'plugins_loaded',  array( $this, 'maybe_do_db' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_ajax_dmrp_count', array( $this, 'update_read_count' ) );
 		add_action( 'wp_ajax_nopriv_dmrp_count', array( $this, 'update_read_count' ) );
 	} // end set_hooks
+
+	public function maybe_do_db() {
+		$installed_db_version = get_site_option( 'dmrp_db_version' );
+
+		if ( empty( $installed_db_version ) ) {
+			self::install_database();
+		} else if( $installed_db_version < $this->db_version ) {
+			self::install_database();
+		}
+	}
+
+	public function install_database() {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'dude_most_read_posts';
+		$charset_collate = $wpdb->get_charset_collate();
+
+		$sql = "CREATE TABLE {$table_name} (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			post_id bigint(20) DEFAULT '0' NOT NULL,
+			time date DEFAULT '0000-00-00' NOT NULL,
+			count bigint(20) DEFAULT '0' NOT NULL,
+			PRIMARY KEY (id)
+		) {$charset_collate};";
+
+		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		dbDelta( $sql );
+
+		add_site_option( 'dmrp_db_version', $this->db_version );
+	} // end function install_database
 
 	/**
 	 * Enqueue and localize javascript that calls the hit counter.
@@ -88,16 +123,16 @@ class Dude_Most_Read_Posts {
 		 * Do not count hits to these post types, by default count for all. This
 		 * behavior can be cahnged with filter
 		 */
-		if( !is_singular( apply_filters( 'dmrp_count_for_post_types', array( 'post' ) ) ) )
+		if( ! is_singular( apply_filters( 'dmrp_count_for_post_types', array( 'post' ) ) ) )
 			return;
 
 		/**
 		 * Enqueue and localize our javascript
 		 */
-		wp_enqueue_script( 'dmrp', plugin_dir_url( __FILE__ ).'public/js/script.min.js', array( 'jquery' ), $this->version, true );
+		wp_enqueue_script( 'dmrp', plugin_dir_url( __FILE__ ) . 'public/js/script.min.js', array( 'jquery' ), $this->version, true );
 		wp_localize_script( 'dmrp', 'dmrp', array(
 			'id'							=> get_the_id(),
-			'nonce'						=>  wp_create_nonce( 'dmrp'.get_the_id() ),
+			'nonce'						=>  wp_create_nonce( 'dmrp' . get_the_id() ),
 			'ajax_url'				=> admin_url( 'admin-ajax.php' ),
 			'cookie_timeout'	=> apply_filters( 'dmrp_cookie_timeout', 3600000 ),
 		) );
@@ -111,44 +146,36 @@ class Dude_Most_Read_Posts {
 	 * @version 0.1.0
 	 */
 	public function update_read_count() {
+		global $wpdb;
+
 		$id = sanitize_text_field( $_POST['id'] );
 
-		check_ajax_referer( 'dmrp'.$id, 'nonce' );
+		check_ajax_referer( 'dmrp' . $id, 'nonce' );
 
-		if( !$this->post_exists( $id ) )
+		if( ! $this->post_exists( $id ) )
 			wp_send_json_error();
 
-		$this->update_count( $id, '_dmrp_count' );
+		$table_name = $wpdb->prefix . 'dude_most_read_posts';
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table_name} WHERE post_id = %s AND time = %s", $id, date( 'Y-m-d' ) ) );
 
-		if( apply_filters( 'dmrp_count_week', false ) )
-			$this->update_count( $id, '_dmrp_count_week_'.date( 'W-Y' ) );
-
-		if( apply_filters( 'dmrp_count_month', false ) )
-			$this->update_count( $id, '_dmrp_count_month_'.date( 'm-Y' ) );
-
-		if( apply_filters( 'dmrp_count_year', false ) )
-			$this->update_count( $id, '_dmrp_count_year_'.date( 'Y' ) );
+		if ( is_null( $row ) ) {
+			$wpdb->insert( $table_name, array(
+				'post_id'	=> $id,
+				'time'		=> date( 'Y-m-d' ),
+				'count'		=> 1,
+			) );
+		} else {
+			$count = intval( $row->count );
+			$wpdb->update( $table_name, array(
+				'count'		=> ++$count,
+			), array(
+				'post_id'	=> $id,
+				'time'		=> date( 'Y-m-d' ),
+			) );
+		}
 
 		wp_send_json_success();
 	} // end update_read_count
-
-	/**
-	 * Do the actual hit count increase.
-	 *
-	 * @param   integer   $id  post to update
-	 * @param   string    $key meta key to update
-	 * @since   0.1.0
-	 * @version 0.1.0
-	 */
-	private function update_count( $id, $key ) {
-		$count = get_post_meta( $id, $key, true );
-
-		if( false === $count )
-			$count = 0;
-
-		$count++;
-		update_post_meta( $id, $key, $count );
-	} // end update_count
 
 	/**
 	 * Helper function for checking if post with id really exists
@@ -165,57 +192,32 @@ class Dude_Most_Read_Posts {
 	/**
 	 * Get most popular posts
 	 *
-	 * @param   string    $period 		all time, year, month or weeks most read
-	 * @param   array     $args   		arguments for period
-	 * @param		array 		$query_args	arguments for wp_query
-	 * @return  mixed     						boolean false if errors, otherwise wp_query
+	 * @param   string    $period 			all time, year, month, weeks or custom period most read
+	 * @param		array 		$query_args		arguments for wp_query
+	 * @param   string 		$custom_start start timestamp (Y-m-d) for custom period
+	 * @param   string 		$custom_end 	end timestamp (Y-m-d) for custom period
+	 * @return  mixed     							boolean false if errors, otherwise wp_query
 	 * @since   0.1.0
 	 * @version 0.1.0
 	 */
-	public function get_most_popular( $period = null, $args = array(), $query_args = array() ) {
-		switch ( $period ) {
-			case 'year':
-				if( !apply_filters( 'dmrp_count_year', false ) )
-					return false;
+	public static function get_most_popular( $period = null, $query_args = array(), $custom_start = null, $custom_end = null ) {
+		$popular_posts = self::get_most_popular_ids( $period, true, $custom_start, $custom_end );
 
-				$key = ( array_key_exists( 'year', $args ) ) ? $args['year'] : date( 'Y' );
-				$key = '_dmrp_count_year_'.$key;
-				break;
-
-			case 'month':
-				if( !apply_filters( 'dmrp_count_month', false ) )
-					return false;
-
-				$key = ( array_key_exists( 'month', $args ) ) ? $args['month'] : date( 'm' );
-				$key .= ( array_key_exists( 'year', $args ) ) ? '-'.$args['year'] : date( '-Y' );
-				$key = '_dmrp_count_month_'.$key;
-				break;
-
-			case 'week':
-				if( !apply_filters( 'dmrp_count_week', false ) )
-					return false;
-
-				$key = ( array_key_exists( 'week', $args ) ) ? $args['week'] : date( 'W' );
-				$key .= ( array_key_exists( 'year', $args ) ) ? '-'.$args['year'] : date( '-Y' );
-				$key = '_dmrp_count_week_'.$key;
-				break;
-
-			default:
-				$key = '_dmrp_count';
-				break;
+		if ( ! $popular_posts ) {
+			return false;
 		}
 
 		$args = wp_parse_args( $query_args, array(
-			'post_type'			=> 'post',
-			'posts_per_page'		=> 5,
-			'post_status'			=> 'publish',
-			'ignore_sticky_posts'		=> true,
-			'no_found_rows'			=> true,
+			'post_type'								=> 'post',
+			'posts_per_page'					=> 5,
+			'post_status'							=> 'publish',
+			'ignore_sticky_posts'			=> true,
+			'no_found_rows'						=> true,
 			'update_post_term_cache'	=> false,
 		) );
 
-		$args['orderby'] = 'meta_value_num';
-		$args['meta_key'] = $key;
+		$args['post__in'] = $popular_posts;
+		$args['orderby'] = 'post__in';
 
 		return new WP_Query( $args );
 	} // end get_most_popular
@@ -224,21 +226,61 @@ class Dude_Most_Read_Posts {
 	 * Get only ids of most popular posts, basically wrapper for function
 	 * get_most_popular.
 	 *
-	 * @param   string    $period 		all time, year, month or weeks most read
-	 * @param   array     $args   		arguments for period
-	 * @param		array 		$query_args	arguments for wp_query
-	 * @return  mixed     						boolean false if errors, otherwise wp_query
+	 * @param   string    $period 			all time, year, month or weeks most read
+	 * @param   boolen 		$only_ids 		should we return only post ids, not read counts also
+	 * @param   string 		$custom_start start timestamp (Y-m-d) for custom period
+	 * @param   string 		$custom_end 	end timestamp (Y-m-d) for custom period
+	 * @return  mixed     							boolean false if errors, otherwise wp_query
 	 * @since		0.1.0
 	 * @version	0.1.0
 	 */
-	public function get_most_popular_ids( $period = null, $args = array(), $query_args = array() ) {
-		$query_args['fields'] = 'ids';
+	public static function get_most_popular_ids( $period = null, $only_ids = true, $custom_start = null, $custom_end = null ) {
+		global $wpdb;
 
-		$query = self::get_most_popular( $period, $args, $query_args );
-		if( $query )
-			return $query->posts;
+		switch ( $period ) {
+			case 'custom':
+				$start_date = $custom_start;
+				$end_date = $custom_end;
+				break;
 
-		return false;
+			case 'year':
+				$start_date = date( 'Y-m-d', strtotime( '-1 year' ) );
+				$end_date = date( 'Y-m-d' );
+				break;
+
+			case 'month':
+				$start_date = date( 'Y-m-d', strtotime( '-1 month' ) );
+				$end_date = date( 'Y-m-d' );
+				break;
+
+			case 'week':
+				$start_date = date( 'Y-m-d', strtotime( '-1 week' ) );
+				$end_date = date( 'Y-m-d' );
+				break;
+
+			default:
+				$start_date = date( 'Y-m-d' );
+				$end_date = date( 'Y-m-d' );
+				break;
+		}
+
+		$table_name = $wpdb->prefix . 'dude_most_read_posts';
+		$result = $wpdb->get_results( $wpdb->prepare( "SELECT post_id, SUM(count) AS count FROM {$table_name} WHERE time between %s and %s GROUP BY post_id ORDER BY count DESC", $start_date, $end_date ), ARRAY_A );
+
+		if ( is_null( $result ) ) {
+			return false;
+		}
+
+		$return = array();
+		foreach ( $result as $row ) {
+			if ( $only_ids ) {
+				$return[] = $row['post_id'];
+			} else {
+				$return[ $row['post_id'] ] = $row['count'];
+			}
+		}
+
+		return $return;
 	} // end get_most_popular_ids
 } // end class
 
@@ -246,13 +288,13 @@ class Dude_Most_Read_Posts {
 new Dude_Most_Read_Posts;
 
 if( !function_exists( 'get_most_popular_posts' ) ) {
-	function get_most_popular_posts( $period = null, $args = array(), $query_args = array() ) {
-		return Dude_Most_Read_Posts::get_most_popular( $period, $args, $query_args );
+	function get_most_popular_posts( $period = null, $query_args = array(), $custom_start = null, $custom_end = null ) {
+		return Dude_Most_Read_Posts::get_most_popular( $period, $query_args, $custom_start, $custom_end );
 	} // end get_most_popular_posts
 }
 
 if( !function_exists( 'get_most_popular_posts_ids' ) ) {
-	function get_most_popular_posts_ids( $period = null, $args = array(), $query_args = array() ) {
-		return Dude_Most_Read_Posts::get_most_popular_ids( $period, $args, $query_args );
+	function get_most_popular_posts_ids( $period = null, $only_ids = true, $custom_start = null, $custom_end = null ) {
+		return Dude_Most_Read_Posts::get_most_popular_ids( $period, $only_ids, $custom_start, $custom_end );
 	} // end get_most_popular_posts_ids
 }
