@@ -32,19 +32,23 @@ This plugin does not have settings page or provide anything visible on front-end
 
 **Plugin introduces two new [functions](#functions) to get most read posts.**
 
-`get_most_popular_posts` returns default WP_Query object containing five posts, and can be used same way as normal `new WP_Query` excluding [parameters](#parameters). Behaviour can be altered with [parameters](#parameters).
+`get_most_popular_posts( $period, $query_args, $custom_start, $custom_end )` returns default WP_Query object containing five posts, and can be used same way as normal `new WP_Query` excluding [parameters](#parameters). Behaviour can be altered with [parameters](#parameters).
 
-`get_most_popular_posts_ids` returns array containing ids of five posts, behaviour can be altered with [parameters](#parameters).
+`get_most_popular_posts_ids( $period, $only_ids, $custom_start, $custom_end )` returns array containing ids of five posts, behaviour can be altered with [parameters](#parameters).
 
 #### Parameters
 
-Both functions accepts three parameters.
+Both functions accepts three basic parameters.
 
-`$period` _(string) (optional)_ Which period of most read posts to receive. Possible values are year, month and week. Default value is null, which equals to all-time.
+`$period` _(string) (optional)_ Which period of most read posts to receive. Possible values are year, month, week and custom. Default value is null, which equals to all-time. If period is custom, provide start and end date to period.
 
-`$args` _(array) (optional)_ If period is set, this parameter is used to set what year and month or week to use. Set array with period as key and wanted time as value. Default value is empty array, which equals to current year, month and week. For example, following array would return most read posts for 2015-09; `array( 'year' => '2015', 'month' => '09' )`.
+`$custom_start` _(string) (optional)_ If period is custom, tell from where to start counting.
 
-`$query_args` _(array) (optional)_ Is merged to arguments set by plugin and forwarded to WP_Query. With this you can set post type or result count with `post_per_page` for example. Default value is empty array.
+`$custom_end` _(string) (optional)_ If period is custom, tell from where to end counting.
+
+`$query_args` _(array) (optional)_ Can be passed as a second arg for `get_most_popular_posts` function. Array is merged to arguments set by plugin and forwarded to WP_Query. With this you can set post type or result count with `post_per_page` for example. Default value is empty array.
+
+`$only_ids` _(boolean) (optional)_ Can be passed as a second arg for `get_most_popular_posts_ids` function. Tell if you want to get the read counts also. If true post ids will be alues, if false post ids will be keys and read count is value for those. Default value is true.
 
 ### Filters
 
@@ -55,12 +59,6 @@ Plugin functionality can be changed with hooks.
 `dmrp_count_for_post_types` by default reads are counted only for posts. Change it by passing array of wanted post types for this filter.
 
 `dmrp_cookie_timeout` by default reads more than once per hour by same user in same post will be ignored. Change the time by passing wanted cookie timeout in milliseconds or disable this functionality by passing `0`.
-
-`dmrp_count_week`pass true to count most read posts also by week. It's recommended to use [`__return_true`](https://codex.wordpress.org/Function_Reference/_return_true).
-
-`dmrp_count_month` pass true to count most read posts also by month. It's recommended to use [`__return_true`](https://codex.wordpress.org/Function_Reference/_return_true).
-
-`dmrp_count_year` pass true to count most read posts also by year. It's recommended to use [`__return_true`](https://codex.wordpress.org/Function_Reference/_return_true).
 
 ### Composer
 

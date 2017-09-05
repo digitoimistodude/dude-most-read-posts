@@ -259,7 +259,7 @@ class Dude_Most_Read_Posts {
 				break;
 
 			default:
-				$start_date = date( 'Y-m-d' );
+				$start_date = date( 'Y-m-d', strtotime( '-100 year' ) );
 				$end_date = date( 'Y-m-d' );
 				break;
 		}
