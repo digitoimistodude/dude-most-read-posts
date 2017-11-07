@@ -3,7 +3,7 @@
  * Plugin Name: Most read posts
  * Plugin URI: https://github.com/digitoimistodude/dude-most-read-posts
  * Description: A developer-friendly plugin to count post reads and list most read content.
- * Version: 2.0.0
+ * Version: 2.1.0
  * Author: Digitoimisto Dude Oy, Timi Wahalahti
  * Author URI: https://www.dude.fi
  * Requires at least: 4.6
@@ -28,7 +28,7 @@ class Dude_Most_Read_Posts {
 
 	public function __construct() {
 		$this->plugin_name = 'dude-most-read-posts';
-		$this->version = '2.0.0';
+		$this->version = '2.1.0';
 		$this->db_version = 1;
 
 		$this->run();
@@ -282,6 +282,69 @@ class Dude_Most_Read_Posts {
 
 		return $return;
 	} // end get_most_popular_ids
+
+	/**
+	 * Get read count for spesific post.
+	 *
+	 * @param   integer   $post_id			for which post to get count
+	 * @param   string    $period 			all time, year, month or weeks most read
+	 * @param   string 		$custom_start start timestamp (Y-m-d) for custom period
+	 * @param   string 		$custom_end 	end timestamp (Y-m-d) for custom period
+	 * @return  mixed     							boolean false if errors, otherwise read count
+	 * @since		2.1.0
+	 * @version	0.1.0
+	 */
+	public static function get_read_count_for_id( $post_id = 0, $period = null, $custom_start = null, $custom_end = null ) {
+		global $wpdb;
+
+		if ( empty( $post_id ) ) {
+			return false;
+		}
+
+		switch ( $period ) {
+			case 'custom':
+				$start_date = $custom_start;
+				$end_date = $custom_end;
+				break;
+
+			case 'year':
+				$start_date = date( 'Y-m-d', strtotime( '-1 year' ) );
+				$end_date = date( 'Y-m-d' );
+				break;
+
+			case 'month':
+				$start_date = date( 'Y-m-d', strtotime( '-1 month' ) );
+				$end_date = date( 'Y-m-d' );
+				break;
+
+			case 'week':
+				$start_date = date( 'Y-m-d', strtotime( '-1 week' ) );
+				$end_date = date( 'Y-m-d' );
+				break;
+
+			default:
+				$start_date = date( 'Y-m-d', strtotime( '-100 year' ) );
+				$end_date = date( 'Y-m-d' );
+				break;
+		}
+
+		$table_name = $wpdb->prefix . 'dude_most_read_posts';
+		$result = $wpdb->get_results( $wpdb->prepare( "SELECT post_id, SUM(count) AS count FROM {$table_name} WHERE time between %s and %s AND post_id = %s GROUP BY post_id", $start_date, $end_date, $post_id ), ARRAY_A );
+
+		if ( is_null( $result ) ) {
+			return false;
+		}
+
+		if ( ! isset( $result[0] ) ) {
+			return false;
+		}
+
+		if ( ! isset( $result[0]['count'] ) ) {
+			return false;
+		}
+
+		return (int) $result[0]['count'];
+	} // end get_read_count_for_id
 } // end class
 
 // Init the class
@@ -297,4 +360,10 @@ if( !function_exists( 'get_most_popular_posts_ids' ) ) {
 	function get_most_popular_posts_ids( $period = null, $only_ids = true, $custom_start = null, $custom_end = null ) {
 		return Dude_Most_Read_Posts::get_most_popular_ids( $period, $only_ids, $custom_start, $custom_end );
 	} // end get_most_popular_posts_ids
+}
+
+if( !function_exists( 'get_post_read_count' ) ) {
+	function get_post_read_count( $post_id = 0, $period = null, $custom_start = null, $custom_end = null ) {
+		return Dude_Most_Read_Posts::get_read_count_for_id( $post_id, $period, $custom_start, $custom_end );
+	}
 }
