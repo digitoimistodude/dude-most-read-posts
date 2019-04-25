@@ -51,7 +51,7 @@ class Dude_Most_Read_Posts {
 	 * @version 0.1.0
 	 */
 	private function set_hooks() {
-		register_activation_hook( __FILE__, array( $this, 'install_database' ) );
+		register_activation_hook( __FILE__, array( $this, 'maybe_do_db' ) );
 
 		load_plugin_textdomain( 'dude-most-read-posts', false, dirname( dirname( plugin_basename( __FILE__ ) ) ).'/languages/' );
 		add_action( 'plugins_loaded',  array( $this, 'maybe_do_db' ) );
