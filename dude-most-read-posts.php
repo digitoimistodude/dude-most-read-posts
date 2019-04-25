@@ -3,7 +3,7 @@
  * Plugin Name: Most read posts
  * Plugin URI: https://github.com/digitoimistodude/dude-most-read-posts
  * Description: A developer-friendly plugin to count post reads and list most read content.
- * Version: 2.1.0
+ * Version: 2.2.0
  * Author: Digitoimisto Dude Oy, Timi Wahalahti
  * Author URI: https://www.dude.fi
  * Requires at least: 4.6
@@ -28,7 +28,7 @@ class Dude_Most_Read_Posts {
 
 	public function __construct() {
 		$this->plugin_name = 'dude-most-read-posts';
-		$this->version = '2.1.0';
+		$this->version = '2.2.0';
 		$this->db_version = 1;
 
 		$this->run();
@@ -88,7 +88,65 @@ class Dude_Most_Read_Posts {
 		dbDelta( $sql );
 
 		add_site_option( 'dmrp_db_version', $this->db_version );
+
+		add_action( 'init', array( $this, 'migrate_old_counts_to_table' ) );
 	} // end function install_database
+
+	public function migrate_old_counts_to_table() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'dude_most_read_posts';
+
+		// get all posts which have old count
+		$query = new WP_Query( array(
+			'post_type'								=> apply_filters( 'dmrp_count_for_post_types', array( 'post' ) ),
+			'post_status'							=> 'publish',
+			'posts_per_page'					=> -1,
+			'meta_query'							=> array(
+				array(
+					'key'	=> '_dmrp_count',
+				),
+				array(
+					'key'			=> '_dmrp_migrated',
+					'compare'	=> 'NOT EXISTS',
+				),
+			),
+			'no_found_rows'						=> true,
+			'cache_results'						=> false,
+			'update_post_term_cache'	=> false,
+			'update_post_meta_cache'	=> true,
+		) );
+
+		// loop posts
+		if ( $query->have_posts() ) {
+			while ( $query->have_posts() ) {
+				$query->the_post();
+
+				$old_count = get_post_meta( get_the_id(), '_dmrp_count', true );
+
+				$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table_name} WHERE post_id = %s AND time = %s", get_the_id(), date( 'Y-m-d' ) ) );
+
+				if ( is_null( $row ) ) {
+					$wpdb->insert( $table_name, array(
+						'post_id'	=> get_the_id(),
+						'time'		=> date( 'Y-m-d' ),
+						'count'		=> $old_count,
+					) );
+				} else {
+					$count = intval( $row->count );
+					$wpdb->update( $table_name, array(
+						'count'		=> $count + $old_count,
+					), array(
+						'post_id'	=> get_the_id(),
+						'time'		=> date( 'Y-m-d' ),
+					) );
+				}
+
+				update_post_meta( get_the_id(), '_dmrp_migrated', 'yes' );
+			} // end while
+		} // end if
+
+		wp_reset_postdata();
+	} // end migrate_old_counts_to_table
 
 	/**
 	 * Enqueue and localize javascript that calls the hit counter.
