@@ -3,7 +3,7 @@
  * Plugin Name: Most read posts
  * Plugin URI: https://github.com/digitoimistodude/dude-most-read-posts
  * Description: A developer-friendly plugin to count post reads and list most read content.
- * Version: 2.2.0
+ * Version: 2.2.1
  * Author: Digitoimisto Dude Oy, Timi Wahalahti
  * Author URI: https://www.dude.fi
  * Requires at least: 4.6
@@ -98,20 +98,20 @@ class Dude_Most_Read_Posts {
 
 		// get all posts which have old count
 		$query = new WP_Query( array(
-			'post_type'								=> apply_filters( 'dmrp_count_for_post_types', array( 'post' ) ),
-			'post_status'							=> 'publish',
-			'posts_per_page'					=> -1,
-			'meta_query'							=> array(
+			'post_type'		=> apply_filters( 'dmrp_count_for_post_types', array( 'post' ) ),
+			'post_status'		=> 'publish',
+			'posts_per_page'	=> -1,
+			'meta_query'		=> array(
 				array(
 					'key'	=> '_dmrp_count',
 				),
 				array(
-					'key'			=> '_dmrp_migrated',
+					'key'		=> '_dmrp_migrated',
 					'compare'	=> 'NOT EXISTS',
 				),
 			),
-			'no_found_rows'						=> true,
-			'cache_results'						=> false,
+			'no_found_rows'			=> true,
+			'cache_results'			=> false,
 			'update_post_term_cache'	=> false,
 			'update_post_meta_cache'	=> true,
 		) );
@@ -189,9 +189,9 @@ class Dude_Most_Read_Posts {
 		 */
 		wp_enqueue_script( 'dmrp', plugin_dir_url( __FILE__ ) . 'public/js/script.min.js', array( 'jquery' ), $this->version, true );
 		wp_localize_script( 'dmrp', 'dmrp', array(
-			'id'							=> get_the_id(),
-			'nonce'						=>  wp_create_nonce( 'dmrp' . get_the_id() ),
-			'ajax_url'				=> admin_url( 'admin-ajax.php' ),
+			'id'			=> get_the_id(),
+			'nonce'			=>  wp_create_nonce( 'dmrp' . get_the_id() ),
+			'ajax_url'		=> admin_url( 'admin-ajax.php' ),
 			'cookie_timeout'	=> apply_filters( 'dmrp_cookie_timeout', 3600000 ),
 		) );
 	} // end register_scripts
@@ -266,11 +266,11 @@ class Dude_Most_Read_Posts {
 		}
 
 		$args = wp_parse_args( $query_args, array(
-			'post_type'								=> 'post',
-			'posts_per_page'					=> 5,
-			'post_status'							=> 'publish',
-			'ignore_sticky_posts'			=> true,
-			'no_found_rows'						=> true,
+			'post_type'			=> apply_filters( 'dmrp_count_for_post_types', array( 'post' ) ),
+			'posts_per_page'		=> 5,
+			'post_status'			=> 'publish',
+			'ignore_sticky_posts'		=> true,
+			'no_found_rows'			=> true,
 			'update_post_term_cache'	=> false,
 		) );
 
