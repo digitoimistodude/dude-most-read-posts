@@ -3,11 +3,11 @@
  * Plugin Name: Most read posts
  * Plugin URI: https://github.com/digitoimistodude/dude-most-read-posts
  * Description: A developer-friendly plugin to count post reads and list most read content.
- * Version: 2.2.1
+ * Version: 2.2.2
  * Author: Digitoimisto Dude Oy, Timi Wahalahti
  * Author URI: https://www.dude.fi
  * Requires at least: 4.6
- * Tested up to: 5.5
+ * Tested up to: 5.6
  *
  * Text Domain: dude-most-read-posts
  * Domain Path: /languages
@@ -28,7 +28,7 @@ class Dude_Most_Read_Posts {
 
 	public function __construct() {
 		$this->plugin_name = 'dude-most-read-posts';
-		$this->version = '2.2.0';
+		$this->version = '2.2.2';
 		$this->db_version = 1;
 
 		$this->run();
@@ -61,11 +61,11 @@ class Dude_Most_Read_Posts {
 	} // end set_hooks
 
 	public function maybe_do_db() {
-		$installed_db_version = get_site_option( 'dmrp_db_version' );
+		$installed_db_version = get_option( 'dmrp_db_version' );
 
 		if ( empty( $installed_db_version ) ) {
 			self::install_database();
-		} else if( $installed_db_version < $this->db_version ) {
+		} elseif ( $installed_db_version < $this->db_version ) {
 			self::install_database();
 		}
 	}
@@ -87,7 +87,7 @@ class Dude_Most_Read_Posts {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		dbDelta( $sql );
 
-		add_site_option( 'dmrp_db_version', $this->db_version );
+		add_option( 'dmrp_db_version', $this->db_version );
 
 		add_action( 'init', array( $this, 'migrate_old_counts_to_table' ) );
 	} // end function install_database
